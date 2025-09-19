@@ -1,29 +1,5 @@
 import requests
 
-# List of major European capital cities
-cities = [
-    "London, United Kingdom",
-    "Paris, France",
-    "Berlin, Germany",
-    "Madrid, Spain",
-    "Rome, Italy",
-    "Vienna, Austria",
-    "Brussels, Belgium",
-    "Amsterdam, Netherlands",
-    "Copenhagen, Denmark",
-    "Oslo, Norway",
-    "Stockholm, Sweden",
-    "Helsinki, Finland",
-    "Dublin, Ireland",
-    "Lisbon, Portugal",
-    "Warsaw, Poland",
-    "Prague, Czech Republic",
-    "Budapest, Hungary",
-    "Athens, Greece",
-    "Bern, Switzerland",
-    "Sofia, Bulgaria"
-]
-
 def get_coordinates(city):
     url = "https://nominatim.openstreetmap.org/search"
     params = {
@@ -55,4 +31,4 @@ if __name__ == "__main__":
         coords = get_coordinates(city)
         print(f"{coords['city']}: Latitude={coords['latitude']}, Longitude={coords['longitude']}")
         results.append(coords)
-    print(results)
+    
