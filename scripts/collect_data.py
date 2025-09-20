@@ -46,7 +46,7 @@ if __name__ == "__main__":
         print("Please set the OPENWEATHER_API_KEY environment variable.")
     else:
         weather_data = []
-        for index, row in df_cities_with_lat_lon.head().iterrows():
+        for index, row in df_cities_with_lat_lon.iterrows():
             
             lat = row['lat']
             lon = row['lon']
@@ -60,7 +60,7 @@ if __name__ == "__main__":
                 del air_pollution_info['components']
             combined_info = {**weather_info, **air_pollution_info}
             weather_data.append(combined_info)
-            time.sleep(1)  # To respect API rate limits
+            time.sleep(0.4)  # To respect API rate limits
         weather_df = pd.DataFrame(weather_data)
         df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon.reset_index(drop=True), weather_df], axis=1)
         print(df_cities_with_lat_lon)
