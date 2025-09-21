@@ -1,12 +1,14 @@
 import requests
 import os
 from dotenv import load_dotenv
-
-from get_city_data_from_db import get_cities_from_db
 import pandas as pd
 import sqlite3
 import time
 import json
+
+from get_city_data_from_db import get_cities_from_db
+from insert_city_to_db import insert_weather_from_df
+
 
 def get_weather_data(lat,lon, api_key):
     url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
@@ -46,7 +48,7 @@ if __name__ == "__main__":
         print("Please set the OPENWEATHER_API_KEY environment variable.")
     else:
         weather_data = []
-        for index, row in df_cities_with_lat_lon.iterrows():
+        for index, row in df_cities_with_lat_lon.head().iterrows():
             
             lat = row['lat']
             lon = row['lon']
@@ -64,6 +66,6 @@ if __name__ == "__main__":
         weather_df = pd.DataFrame(weather_data)
         df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon.reset_index(drop=True), weather_df], axis=1)
         print(df_cities_with_lat_lon)
-conn = sqlite3.connect('/Users/swostikshrestha/Documents/Swostik/weather_project/weather.db')
-df_cities_with_lat_lon.to_sql('weather_data', conn, if_exists='replace', index=False)
-conn.close()
+
+        # Insert into database
+        insert_weather_from_df('weather.db', df_cities_with_lat_lon)

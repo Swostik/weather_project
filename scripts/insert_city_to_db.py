@@ -1,5 +1,6 @@
 import sqlite3
 from collect_city_coordinates import get_coordinates
+from sqlalchemy import create_engine
 
 cities = [
     "London, United Kingdom",
@@ -35,14 +36,19 @@ def insert_city(db_path, city_name, latitude, longitude):
     conn.close()
     print(f"Inserted city: {city_name} ({latitude}, {longitude})")
 
-if __name__ == "__main__":
-    # Example usage
-    db_path = "weather.db"
-    # Insert some dummy data into the cities table
+def insert_weather_from_df(db_path, df):
+    """
+    Inserts weather data from a pandas DataFrame into the weather table.
+    The DataFrame should have columns: city_name, temperature, humidity, weather_description, timestamp
+    """
+
+    conn = sqlite3.connect(db_path)
+    df.to_sql('weather_data', conn, if_exists='replace', index=False)
+    conn.close()
     
-    for city in cities:
-        coords = get_coordinates(city)
-        latitude = float(coords['latitude']) if coords['latitude'] else None
-        longitude = float(coords['longitude']) if coords['longitude'] else None
-        #print(f"{coords['city']}: Latitude={coords['latitude']}, Longitude={coords['longitude']}")
-        insert_city(db_path, city, latitude, longitude)
+
+    print(f"Inserted {len(df)} weather records from DataFrame")
+
+if __name__ == "__main__":
+    # do not run 
+    pass
