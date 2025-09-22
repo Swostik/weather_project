@@ -48,7 +48,7 @@ if __name__ == "__main__":
         print("Please set the OPENWEATHER_API_KEY environment variable.")
     else:
         weather_data = []
-        for index, row in df_cities_with_lat_lon.head().iterrows():
+        for index, row in df_cities_with_lat_lon.iterrows():
             
             lat = row['lat']
             lon = row['lon']
