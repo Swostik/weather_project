@@ -7,8 +7,55 @@ import time
 import json
 
 from get_city_data_from_db import get_cities_from_db
-from insert_city_to_db import insert_weather_from_df
+from insert_to_db import insert_weather_from_df, insert_city
+from create_db import create_city_table
 
+cities = [
+    "London, United Kingdom",
+    "Paris, France",
+    "Berlin, Germany",
+    "Madrid, Spain",
+    "Rome, Italy",
+    "Vienna, Austria",
+    "Brussels, Belgium",
+    "Amsterdam, Netherlands",
+    "Copenhagen, Denmark",
+    "Oslo, Norway",
+    "Stockholm, Sweden",
+    "Helsinki, Finland",
+    "Dublin, Ireland",
+    "Lisbon, Portugal",
+    "Warsaw, Poland",
+    "Prague, Czech Republic",
+    "Budapest, Hungary",
+    "Athens, Greece",
+    "Bern, Switzerland",
+    "Sofia, Bulgaria"]
+
+def get_coordinates(city):
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": city,
+        "format": "json",
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "city-coordinates-script"
+    }
+    response = requests.get(url, params=params, headers=headers)
+    data = response.json()
+    if data:
+        return {
+            "city": city,
+            "latitude": data[0]["lat"],
+            "longitude": data[0]["lon"]
+        }
+    else:
+        return {
+            "city": city,
+            "latitude": None,
+            "longitude": None
+        }
 
 def get_weather_data(lat,lon, api_key):
     url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
@@ -41,8 +88,30 @@ def get_air_pollution_data(lat, lon, api_key):
     
 if __name__ == "__main__":
     load_dotenv()  # Load environment variables from .env file
+    # Check if the 'cities' table exists, else create it
+    create_city_table()
+   
     df_cities_with_lat_lon = get_cities_from_db()
-    print(df_cities_with_lat_lon)
+    missing_cities = [city for city in cities if city not in df_cities_with_lat_lon['city_name'].values]
+    if missing_cities:
+        print("Missing cities in DataFrame:", missing_cities)
+        # Find coordinates for missing cities and append to DataFrame
+        new_city_coords = []
+        for city in missing_cities:
+            coords = get_coordinates(city)
+            new_city_coords.append({
+                'city_name': coords['city'],
+                'lat': coords['latitude'],
+                'lon': coords['longitude']
+            })
+        if new_city_coords:
+            new_cities_df = pd.DataFrame(new_city_coords)
+            # Save new cities with coordinates to the database
+            for _, row in new_cities_df.iterrows():
+                insert_city('weather.db', row['city_name'], row['lat'], row['lon'])
+            df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon, new_cities_df], ignore_index=True)
+    else:
+        print("All cities are present in the DataFrame.")
     api_key = os.getenv("OPENWEATHER_API_KEY")
     if not api_key:
         print("Please set the OPENWEATHER_API_KEY environment variable.")
@@ -62,8 +131,11 @@ if __name__ == "__main__":
                 del air_pollution_info['components']
             combined_info = {**weather_info, **air_pollution_info}
             weather_data.append(combined_info)
-            time.sleep(0.4)  # To respect API rate limits
+            time.sleep(0.4) 
+            print(len(weather_data)) # To respect API rate limits
         weather_df = pd.DataFrame(weather_data)
+        print(weather_df)
+        print(df_cities_with_lat_lon)
         df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon.reset_index(drop=True), weather_df], axis=1)
         print(df_cities_with_lat_lon)
 

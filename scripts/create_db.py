@@ -20,11 +20,11 @@ def create_city_table(db_path='weather.db'):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS city (
+        CREATE TABLE IF NOT EXISTS cities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL
+            city_name TEXT NOT NULL,
+            lat REAL NOT NULL,
+            lon REAL NOT NULL
         )
     ''')
     conn.commit()

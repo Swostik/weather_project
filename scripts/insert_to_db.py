@@ -29,7 +29,7 @@ def insert_city(db_path, city_name, latitude, longitude):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO cities (name, latitude, longitude)
+        INSERT INTO cities (city_name, lat, lon)
         VALUES (?, ?, ?)
     ''', (city_name, latitude, longitude))
     conn.commit()

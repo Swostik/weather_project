@@ -7,7 +7,7 @@ def get_cities_from_db(db_path='weather.db') -> pd.DataFrame:
     cursor.execute("SELECT * FROM cities")
     cities = cursor.fetchall()
     conn.close()
-    df = pd.DataFrame(cities, columns=['index', 'city', 'lat', 'lon'])
+    df = pd.DataFrame(cities, columns=['index', 'city_name', 'lat', 'lon'])
     return df
 
 if __name__ == "__main__":
