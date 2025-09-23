@@ -6,7 +6,7 @@ import sqlite3
 import time
 import json
 
-from get_city_data_from_db import get_cities_from_db
+from get_data_from_db import get_cities_from_db, get_most_recent_date_from_weather
 from insert_to_db import insert_weather_from_df, insert_city
 from create_db import create_city_table
 
@@ -138,6 +138,31 @@ if __name__ == "__main__":
         print(df_cities_with_lat_lon)
         df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon.reset_index(drop=True), weather_df], axis=1)
         print(df_cities_with_lat_lon)
+        # Combine 'date' and 'hour' into a single column in 'YYYY-MM-DD HH' format
+        df_cities_with_lat_lon['date_hour'] = pd.to_datetime(df_cities_with_lat_lon['date']).dt.strftime('%Y-%m-%d %H')
+        df_cities_with_lat_lon.drop(columns=['date'], inplace=True)
+        df_cities_with_lat_lon.rename(columns={'date_hour': 'date'}, inplace=True)
+        
+        # Check if the 'weather_data' table exists, else create it
+        conn = sqlite3.connect('weather.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name FROM sqlite_master WHERE type='table' AND name='weather_data';
+        """)
+        table_exists = cursor.fetchone()
+        if table_exists:
 
-        # Insert into database
-        insert_weather_from_df('weather.db', df_cities_with_lat_lon)
+            #get max date from weather_data table
+            most_recent_date = get_most_recent_date_from_weather('weather.db')
+            df_cities_with_lat_lon = df_cities_with_lat_lon[
+                pd.to_datetime(df_cities_with_lat_lon['date']).dt.hour > pd.to_datetime(most_recent_date).hour
+            ]
+            if df_cities_with_lat_lon.empty:
+                print("No new weather data to insert.")
+            else:
+                print(f"Inserting {len(df_cities_with_lat_lon)} new weather records.")
+
+                # Insert into database
+                insert_weather_from_df('weather.db', df_cities_with_lat_lon)
+        else:
+            insert_weather_from_df('weather.db', df_cities_with_lat_lon)

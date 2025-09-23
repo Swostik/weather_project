@@ -43,7 +43,7 @@ def insert_weather_from_df(db_path, df):
     """
 
     conn = sqlite3.connect(db_path)
-    df.to_sql('weather_data', conn, if_exists='replace', index=False)
+    df.to_sql('weather_data', conn, if_exists='append', index=False)
     conn.close()
     
 
