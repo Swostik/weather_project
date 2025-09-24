@@ -142,7 +142,9 @@ if __name__ == "__main__":
         df_cities_with_lat_lon['date_hour'] = pd.to_datetime(df_cities_with_lat_lon['date']).dt.strftime('%Y-%m-%d %H')
         df_cities_with_lat_lon.drop(columns=['date'], inplace=True)
         df_cities_with_lat_lon.rename(columns={'date_hour': 'date'}, inplace=True)
-        
+        # Remove index column if present before saving to DB
+        if 'index' in df_cities_with_lat_lon.columns:
+            df_cities_with_lat_lon.drop(columns=['index'], inplace=True)
         # Check if the 'weather_data' table exists, else create it
         conn = sqlite3.connect('weather.db')
         cursor = conn.cursor()
@@ -155,7 +157,7 @@ if __name__ == "__main__":
             #get max date from weather_data table
             most_recent_date = get_most_recent_date_from_weather('weather.db')
             df_cities_with_lat_lon = df_cities_with_lat_lon[
-                pd.to_datetime(df_cities_with_lat_lon['date']).dt.hour > pd.to_datetime(most_recent_date).hour
+                pd.to_datetime(df_cities_with_lat_lon['date'], format='%Y-%m-%d %H') > pd.to_datetime(most_recent_date, format='%Y-%m-%d %H')
             ]
             if df_cities_with_lat_lon.empty:
                 print("No new weather data to insert.")
