@@ -8,7 +8,7 @@ import json
 
 from get_data_from_db import get_cities_from_db, get_most_recent_date_from_weather
 from insert_to_db import insert_weather_from_df, insert_city
-from create_db import create_city_table
+from create_db import create_city_table, create_weather_table
 
 cities = [
     "London, United Kingdom",

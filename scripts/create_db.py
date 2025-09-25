@@ -1,17 +1,18 @@
 import sqlite3
 
 def create_weather_table(db_path='weather.db'):
+    
+    """
+    Creates the weather table with only an auto-incrementing primary key.
+    Pandas will add the other columns later.
+    """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS weather (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            city TEXT NOT NULL,
-            temperature REAL,
-            description TEXT,
-            date TEXT NOT NULL
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS weather_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT
         )
-    ''')
+    """)
     conn.commit()
     conn.close()
 
