@@ -164,7 +164,7 @@ if __name__ == "__main__":
             if df_cities_with_lat_lon.empty:
                 print("No new weather data to insert.")
             else:
-                print(f"Inserting {len(df_cities_with_lat_lon)} new weather records.")
+                print(f"Inserting {len(df_cities_with_lat_lon)} new weather records. -- {pd.Timestamp.now()}")
 
                 # Insert into database
                 insert_weather_from_df(db_path, df_cities_with_lat_lon)
