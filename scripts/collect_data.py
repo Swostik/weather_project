@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+
+
+
 import requests
 import os
 from dotenv import load_dotenv
@@ -8,8 +12,7 @@ import json
 
 from get_data_from_db import get_cities_from_db, get_most_recent_date_from_weather
 from insert_to_db import insert_weather_from_df, insert_city
-from create_db import create_city_table, create_weather_table
-
+from create_db import create_city_table
 cities = [
     "London, United Kingdom",
     "Paris, France",
@@ -88,10 +91,11 @@ def get_air_pollution_data(lat, lon, api_key):
     
 if __name__ == "__main__":
     load_dotenv()  # Load environment variables from .env file
+    db_path = os.getenv("db_path")
     # Check if the 'cities' table exists, else create it
-    create_city_table()
+    create_city_table(db_path=db_path)
    
-    df_cities_with_lat_lon = get_cities_from_db()
+    df_cities_with_lat_lon = get_cities_from_db(db_path=db_path)
     missing_cities = [city for city in cities if city not in df_cities_with_lat_lon['city_name'].values]
     if missing_cities:
         print("Missing cities in DataFrame:", missing_cities)
@@ -108,7 +112,7 @@ if __name__ == "__main__":
             new_cities_df = pd.DataFrame(new_city_coords)
             # Save new cities with coordinates to the database
             for _, row in new_cities_df.iterrows():
-                insert_city('weather.db', row['city_name'], row['lat'], row['lon'])
+                insert_city(db_path, row['city_name'], row['lat'], row['lon'])
             df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon, new_cities_df], ignore_index=True)
     else:
         print("All cities are present in the DataFrame.")
@@ -134,10 +138,9 @@ if __name__ == "__main__":
             time.sleep(0.4) 
             print(len(weather_data)) # To respect API rate limits
         weather_df = pd.DataFrame(weather_data)
-        print(weather_df)
-        print(df_cities_with_lat_lon)
+        
         df_cities_with_lat_lon = pd.concat([df_cities_with_lat_lon.reset_index(drop=True), weather_df], axis=1)
-        print(df_cities_with_lat_lon)
+        
         # Combine 'date' and 'hour' into a single column in 'YYYY-MM-DD HH' format
         df_cities_with_lat_lon['date_hour'] = pd.to_datetime(df_cities_with_lat_lon['date']).dt.strftime('%Y-%m-%d %H')
         df_cities_with_lat_lon.drop(columns=['date'], inplace=True)
@@ -146,7 +149,7 @@ if __name__ == "__main__":
         if 'index' in df_cities_with_lat_lon.columns:
             df_cities_with_lat_lon.drop(columns=['index'], inplace=True)
         # Check if the 'weather_data' table exists, else create it
-        conn = sqlite3.connect('weather.db')
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("""
             SELECT name FROM sqlite_master WHERE type='table' AND name='weather_data';
@@ -155,7 +158,7 @@ if __name__ == "__main__":
         if table_exists:
 
             #get max date from weather_data table
-            most_recent_date = get_most_recent_date_from_weather('weather.db')
+            most_recent_date = get_most_recent_date_from_weather(db_path=db_path)
             df_cities_with_lat_lon = df_cities_with_lat_lon[
                 pd.to_datetime(df_cities_with_lat_lon['date'], format='%Y-%m-%d %H') > pd.to_datetime(most_recent_date, format='%Y-%m-%d %H')
             ]
@@ -165,6 +168,6 @@ if __name__ == "__main__":
                 print(f"Inserting {len(df_cities_with_lat_lon)} new weather records.")
 
                 # Insert into database
-                insert_weather_from_df('weather.db', df_cities_with_lat_lon)
+                insert_weather_from_df(db_path, df_cities_with_lat_lon)
         else:
-            insert_weather_from_df('weather.db', df_cities_with_lat_lon)
+            insert_weather_from_df(db_path, df_cities_with_lat_lon)

@@ -1,0 +1,2 @@
+# Crontab Entry (run every hour)
+0 * * * * /Users/swostikshrestha/Documents/Swostik/weather_project/venv/bin/python /Users/swostikshrestha/Documents/Swostik/weather_project/scripts/collect_data.py >> /Users/swostikshrestha/Documents/Swostik/weather_project/logs/collect.log 2>&1

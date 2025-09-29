@@ -42,9 +42,8 @@ def insert_weather_from_df(db_path, df):
     The DataFrame should have columns: city_name, temperature, humidity, weather_description, timestamp
     """
 
-    conn = sqlite3.connect(db_path)
-    df.to_sql('weather_data', conn, if_exists='append', index=False)
-    conn.close()
+    with sqlite3.connect(db_path) as conn:
+        df.to_sql('weather_data', conn, if_exists='append', index=False)
     
 
     print(f"Inserted {len(df)} weather records from DataFrame")
